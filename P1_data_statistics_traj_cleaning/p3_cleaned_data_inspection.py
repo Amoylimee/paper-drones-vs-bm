@@ -26,7 +26,7 @@ def _project_root() -> Path:
     return root
 
 
-def _build_summary(df: pd.DataFrame) -> str:
+def _build_summary(df: pd.DataFrame, raw_rows: int | None = None) -> str:
     speed_col = "speed" if "speed" in df.columns else "sog"
     avg_speed = df[speed_col].mean(skipna=True) if speed_col in df.columns else float("nan")
     valid_speed_count = (
@@ -48,6 +48,17 @@ def _build_summary(df: pd.DataFrame) -> str:
         "Duplicate records (mmsi + timeUtc): "
         f"{df.duplicated(subset=['mmsi', 'timeUtc']).sum():,}"
     )
+    if raw_rows is not None:
+        removed_rows = raw_rows - len(df)
+        removed_ratio = (removed_rows / raw_rows * 100) if raw_rows else 0.0
+        lines.append("")
+        lines.append("Data Volume Change (Raw -> Cleaned)")
+        lines.append("-" * 60)
+        lines.append(f"Raw rows (before): {raw_rows:,}")
+        lines.append(f"Cleaned rows (after): {len(df):,}")
+        lines.append(f"Row change (after - before): {len(df) - raw_rows:,}")
+        lines.append(f"Removed rows: {removed_rows:,}")
+        lines.append(f"Removed ratio: {removed_ratio:.2f}%")
     return "\n".join(lines) + "\n"
 
 
@@ -67,10 +78,12 @@ if __name__ == "__main__":
     iog.create_new_directory(log_dir)
 
     cleaned_data_path = Path("./output/P1/p2_traj_cleaning/P1_p2_cleaned_traj.feather")
+    raw_data_path = Path("./data/bridge_msg_filtered.csv")
     df_cleaned = pd.read_feather(cleaned_data_path)
     df_cleaned["timeUtc"] = pd.to_datetime(df_cleaned["timeUtc"], errors="coerce")
+    raw_rows = pd.read_csv(raw_data_path, usecols=[0], header=None).shape[0]
 
-    summary_text = _build_summary(df_cleaned)
+    summary_text = _build_summary(df_cleaned, raw_rows=raw_rows)
     summary_path = output_dir / "P1_p3_cleaned_data_summary.txt"
     summary_path.write_text(summary_text, encoding="utf-8")
 
