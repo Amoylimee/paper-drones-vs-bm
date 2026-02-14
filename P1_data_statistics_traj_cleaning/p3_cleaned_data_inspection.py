@@ -27,30 +27,27 @@ def _project_root() -> Path:
 
 
 def _build_summary(df: pd.DataFrame) -> str:
+    speed_col = "speed" if "speed" in df.columns else "sog"
+    avg_speed = df[speed_col].mean(skipna=True) if speed_col in df.columns else float("nan")
+    valid_speed_count = (
+        df[speed_col].notna().sum() if speed_col in df.columns else 0
+    )
+    unique_id_count = df["id"].nunique() if "id" in df.columns else 0
+
     lines: list[str] = []
-    lines.append("P1_p3 Cleaned Data Inspection")
+    lines.append("P1_p3 Cleaned AIS Fleet Report")
     lines.append("=" * 60)
     lines.append(f"Rows: {len(df):,}")
-    lines.append(f"Columns: {len(df.columns)}")
+    lines.append(f"Columns: {len(df.columns):,}")
     lines.append(f"Time range: {df['timeUtc'].min()} -> {df['timeUtc'].max()}")
     lines.append(f"Unique MMSI: {df['mmsi'].nunique():,}")
+    lines.append(f"Unique ID: {unique_id_count:,}")
+    lines.append(f"Average Fleet Speed ({speed_col}): {avg_speed:.3f}")
+    lines.append(f"Speed observations used: {valid_speed_count:,}")
     lines.append(
         "Duplicate records (mmsi + timeUtc): "
         f"{df.duplicated(subset=['mmsi', 'timeUtc']).sum():,}"
     )
-    lines.append("")
-    lines.append("Missing Values")
-    lines.append("-" * 60)
-    lines.append(df.isna().sum().to_string())
-    lines.append("")
-    lines.append("Dtypes")
-    lines.append("-" * 60)
-    lines.append(df.dtypes.to_string())
-    lines.append("")
-    lines.append("Numeric Describe")
-    lines.append("-" * 60)
-    numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
-    lines.append(df[numeric_cols].describe(percentiles=[0.01, 0.05, 0.5, 0.95, 0.99]).to_string())
     return "\n".join(lines) + "\n"
 
 
