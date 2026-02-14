@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Use project conda env for internal packages and plotting dependencies
+CONDA_ENV="sinbue_env"
+
 # Create bash directory if it doesn't exist
 mkdir -p bash
 
@@ -19,6 +22,7 @@ SCRIPTS=(
     "P1_data_statistics_traj_cleaning/p1_raw_data_inspection.py"
     "P1_data_statistics_traj_cleaning/p2_traj_cleaning.py"
     "P1_data_statistics_traj_cleaning/p3_cleaned_data_inspection.py"
+    "P1_data_statistics_traj_cleaning/p4_points_before_after_plot.py"
 )
 
 # Run each script
@@ -36,8 +40,8 @@ for script in "${SCRIPTS[@]}"; do
     start_time=$(date +%s)
     start_datetime=$(date)
     
-    # Run Python script and wait for completion
-    python "$script" 2>> "$ERROR_LOG" && wait
+    # Run Python script in conda environment and wait for completion
+    conda run -n "$CONDA_ENV" python "$script" 2>> "$ERROR_LOG" && wait
     
     if [ $? -eq 0 ]; then
         # Calculate execution time
