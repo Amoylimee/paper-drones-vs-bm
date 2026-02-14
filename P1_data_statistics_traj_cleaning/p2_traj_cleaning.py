@@ -162,7 +162,7 @@ if __name__ == "__main__":
         )
 
         steps = [
-            "basic",
+            # "basic",
             "tbd_drift",
             # "bidirectional_speed_drift",
             "speed_anomalies",
