@@ -151,7 +151,7 @@ def _plot_before_after_grids(
     extent: tuple[float, float, float, float],
     save_path: Path,
     mapbox: MapboxTiles,
-    basemap_zoom: int = 10,
+    basemap_zoom: int = 16,
     vmin_percentile: int = 0,
     vmax_percentile: int = 85,
 ) -> None:
@@ -295,7 +295,7 @@ if __name__ == "__main__":
         extent=dynamic_extent,
         save_path=figure_path,
         mapbox=mapbox,
-        basemap_zoom=10,
+        basemap_zoom=16,
         vmin_percentile=0,
         vmax_percentile=85,
     )
