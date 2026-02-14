@@ -45,6 +45,15 @@ def _build_summary(df: pd.DataFrame) -> str:
         df[speed_col].notna().sum() if speed_col in df.columns else 0
     )
     unique_id_count = df["id"].nunique() if "id" in df.columns else 0
+    interval_stats = (
+        df.sort_values(["mmsi", "timeUtc"])
+        .groupby("mmsi")["timeUtc"]
+        .diff()
+        .dt.total_seconds()
+    )
+    interval_stats = interval_stats[(interval_stats.notna()) & (interval_stats > 0)]
+    avg_interval_seconds = interval_stats.mean(skipna=True)
+    valid_interval_count = interval_stats.shape[0]
 
     lines: list[str] = []
     lines.append("P1_p1 Raw AIS Fleet Report")
@@ -56,6 +65,8 @@ def _build_summary(df: pd.DataFrame) -> str:
     lines.append(f"Unique ID: {unique_id_count:,}")
     lines.append(f"Average Fleet Speed ({speed_col}): {avg_speed:.3f}")
     lines.append(f"Speed observations used: {valid_speed_count:,}")
+    lines.append(f"Average Interval Between Points (seconds): {avg_interval_seconds:.3f}")
+    lines.append(f"Interval observations used: {valid_interval_count:,}")
     lines.append(
         "Duplicate records (mmsi + timeUtc): "
         f"{df.duplicated(subset=['mmsi', 'timeUtc']).sum():,}"
